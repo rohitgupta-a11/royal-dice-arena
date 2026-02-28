@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royal Dice Arena Pro</title>
+
+<style>
+body{
+    margin:0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    color:white;
+}
+
+/* START SCREEN */
+#startScreen{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:linear-gradient(45deg,#000,#111);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:100;
+    text-align:center;
+}
+
+#startScreen h1{
+    font-size:42px;
+    letter-spacing:2px;
+    margin-bottom:10px;
+}
+
+#startScreen button{
+    padding:12px 25px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:#00c6ff;
+    color:white;
+    cursor:pointer;
+}
+
+/* HEADER */
+.header{
+    margin-top:20px;
+    font-size:28px;
+    font-weight:bold;
+    letter-spacing:1px;
+}
+
+/* BOARD */
+.board{
+    width:90vw;
+    max-width:500px;
+    height:90vw;
+    max-height:500px;
+    background:white;
+    display:grid;
+    grid-template-columns:repeat(15,1fr);
+    grid-template-rows:repeat(15,1fr);
+    position:relative;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    margin-top:20px;
+}
+
+.cell{
+    border:1px solid #eee;
+}
+
+/* TOKENS */
+.token{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    position:absolute;
+    transition:all 0.3s ease;
+    box-shadow:0 3px 8px rgba(0,0,0,0.5);
+}
+
+.red{background:#ff3b3b;}
+.green{background:#2ecc71;}
+.blue{background:#3498db;}
+.yellow{background:#f1c40f;}
+
+/* CONTROLS */
+.controls{
+    margin:20px;
+    text-align:center;
+}
+
+#dice{
+    font-size:55px;
+    margin:10px;
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    border-radius:6px;
+    background:#ff9800;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:0.8;
+}
+
+@media(max-width:600px){
+    #dice{font-size:40px;}
+}
+</style>
+</head>
+
+<body>
+
+<div id="startScreen">
+    <h1>ROYAL DICE ARENA</h1>
+    <p>Ultimate 4 Player Dice Battle</p>
+    <button onclick="startGame()">START GAME</button>
+</div>
+
+<div class="header">Royal Dice Arena Pro</div>
+
+<div class="board" id="board"></div>
+
+<div class="controls">
+    <h3 id="turnText">Turn: Red</h3>
+    <div id="dice">🎲</div>
+    <button onclick="rollDice()">Roll Dice</button>
+</div>
+
+<!-- AUDIO -->
+<audio id="diceSound" src="https://www.soundjay.com/dice/dice-throw-1.mp3"></audio>
+<audio id="winSound" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
+<audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+
+<script>
+const board=document.getElementById("board");
+
+/* Create Grid */
+for(let i=0;i<225;i++){
+    let cell=document.createElement("div");
+    cell.className="cell";
+    board.appendChild(cell);
+}
+
+/* Players */
+let players=[
+    {name:"Red",color:"red",pos:-1,token:null},
+    {name:"Green",color:"green",pos:-1,token:null},
+    {name:"Blue",color:"blue",pos:-1,token:null},
+    {name:"Yellow",color:"yellow",pos:-1,token:null}
+];
+
+/* Create Tokens */
+players.forEach(p=>{
+    let t=document.createElement("div");
+    t.className="token "+p.color;
+    board.appendChild(t);
+    p.token=t;
+});
+
+let current=0;
+let diceEl=document.getElementById("dice");
+let turnText=document.getElementById("turnText");
+
+/* START GAME */
+function startGame(){
+    document.getElementById("startScreen").style.display="none";
+    document.getElementById("bgMusic").play();
+}
+
+/* ROLL DICE */
+function rollDice(){
+    let dice=Math.floor(Math.random()*6)+1;
+    diceEl.textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][dice-1];
+    document.getElementById("diceSound").play();
+
+    let player=players[current];
+
+    if(player.pos===-1){
+        if(dice===6){
+            player.pos=0;
+        }
+    }else{
+        player.pos+=dice;
+        if(player.pos>=40){
+            document.getElementById("winSound").play();
+            setTimeout(()=>{
+                alert(player.name+" Wins The Game!");
+                location.reload();
+            },300);
+            return;
+        }
+    }
+
+    updatePosition(player);
+
+    if(dice!==6){
+        current=(current+1)%4;
+        turnText.textContent="Turn: "+players[current].name;
+    }
+}
+
+/* UPDATE POSITION */
+function updatePosition(player){
+    let row=Math.floor(player.pos/15);
+    let col=player.pos%15;
+    player.token.style.top=(row*(100/15))+"%";
+    player.token.style.left=(col*(100/15))+"%";
+}
+</script>
+
+</body>
+</html>
